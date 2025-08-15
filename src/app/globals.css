@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255; /* white */
+    --foreground: 17 24 39; /* gray-900 */
+  }
+
+  .dark {
+    --background: 17 24 39; /* gray-900 */
+    --foreground: 255 255 255; /* white */
+  }
+}
+
+body {
+  @apply bg-[rgb(var(--background))] text-[rgb(var(--foreground))];
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-bold;
+}
+
+.container {
+  @apply max-w-4xl mx-auto;
+}
+
+.prose {
+  /* Basic prose styles for rich text content */
+  @apply text-[rgb(var(--foreground))];
+}
+
+.prose h1 { @apply text-4xl mb-4; }
+.prose h2 { @apply text-3xl mb-3; }
+.prose h3 { @apply text-2xl mb-2; }
+.prose p { @apply mb-4 leading-relaxed; }
+.prose ul { @apply list-disc pl-5 mb-4; }
+.prose ol { @apply list-decimal pl-5 mb-4; }
+.prose a { @apply text-blue-600 hover:underline; }
+.prose img { @apply max-w-full h-auto rounded-lg my-4; }
