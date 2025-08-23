@@ -34,8 +34,11 @@ h1, h2, h3, h4, h5, h6 {
 .prose h1 { @apply text-4xl mb-4; }
 .prose h2 { @apply text-3xl mb-3; }
 .prose h3 { @apply text-2xl mb-2; }
-.prose p { @apply mb-4 leading-relaxed; }
 .prose ul { @apply list-disc pl-5 mb-4; }
 .prose ol { @apply list-decimal pl-5 mb-4; }
-.prose a { @apply text-blue-600 hover:underline; }
+.prose a { @apply text-orange-600 hover:underline; }
 .prose img { @apply max-w-full h-auto rounded-lg my-4; }
+
+.text-pop-shadow {
+  text-shadow: 2px 2px 0px #FFD700, 4px 4px 0px #FFA500; /* Gold and Orange */
+}

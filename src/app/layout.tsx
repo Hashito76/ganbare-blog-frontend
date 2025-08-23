@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Import Inter font
+import { Inter, Luckiest_Guy } from "next/font/google"; // Import Inter and Luckiest_Guy font
 import "./globals.css";
 import Link from "next/link";
 import SearchInput from '@/components/SearchInput'; // Added import
@@ -7,10 +7,15 @@ import { ThemeProvider } from '@/components/ThemeProvider'; // Added import
 import ThemeSwitcher from '@/components/ThemeSwitcher'; // Added import
 
 const inter = Inter({ subsets: ["latin"] }); // Initialize Inter font
+const luckiestGuy = Luckiest_Guy({
+  weight: "400", // Luckiest Guy only has 400 weight
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "My Awesome Blog",
-  description: "A blog built with Next.js and Sanity",
+  title: "『ちょこっとアウトドア』",
+  description: "Next.jsとSanityで構築されたブログ",
 };
 
 export default function RootLayout({
@@ -26,19 +31,19 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <header className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex justify-between items-center">
-              <Link href="/" className="text-2xl font-bold">
-                My Awesome Blog
+              <Link href="/" className={`text-2xl font-bold ${luckiestGuy.className} text-pop-shadow text-white`}>
+                『ちょこっとアウトドア』
               </Link>
               <nav className="flex items-center space-x-4">
                 <ul className="flex space-x-4">
                   <li>
                     <Link href="/" className="hover:underline">
-                      Home
+                      ホーム
                     </Link>
                   </li>
                   <li>
                     <Link href="/categories" className="hover:underline">
-                      Categories
+                      カテゴリー
                     </Link>
                   </li>
                 </ul>
@@ -52,7 +57,7 @@ export default function RootLayout({
           </main>
           <footer className="bg-gray-800 text-white p-4 text-center">
             <div className="container mx-auto">
-              &copy; {new Date().getFullYear()} My Awesome Blog. All rights reserved.
+              &copy; {new Date().getFullYear()} 『ちょこっとアウトドア』. 無断転載を禁じます。
             </div>
           </footer>
         </ThemeProvider>

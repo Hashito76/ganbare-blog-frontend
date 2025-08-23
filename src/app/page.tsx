@@ -44,39 +44,48 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
 
   return (
     <div>
-      <h1 className="text-4xl font-bold mb-8">Blog Posts</h1>
+      <h1 className="text-4xl font-bold mb-8">ブログ記事</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts.map((post: any) => (
-          <div key={post._id} className="border p-4 rounded-lg shadow-md">
+          <Link
+            key={post._id}
+            href={`/post/${post.slug.current}`}
+            className="block rounded-lg overflow-hidden shadow-md bg-white dark:bg-gray-800 transition-transform duration-300 ease-in-out hover:shadow-xl hover:-translate-y-2"
+          >
             {post.mainImage && (
-              <img
+              <Image
                 src={urlFor(post.mainImage).url()}
                 alt={post.title}
-                className="w-full h-32 object-cover rounded-lg mb-4"
+                width={400}
+                height={250}
+                className="w-full h-48 object-cover"
               />
             )}
-            <h2 className="text-2xl font-semibold mb-2">{post.title}</h2>
-            <div className="flex items-center text-gray-600 text-sm mb-2">
-              {post.author.image && (
-                <img
-                  src={urlFor(post.author.image).width(30).height(30).url()}
-                  alt={post.author.name}
-                  className="rounded-full mr-2"
-                />
-              )}
-              <span>By {post.author.name} on {new Date(post.publishedAt).toLocaleDateString()}</span>
-            </div>
-            <div className="mb-4">
-              {post.categories && post.categories.map((category: any) => (
-                <span key={category.title} className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mr-2">
-                  {category.title}
+            <div className="p-6">
+              <div className="mb-4">
+                {post.categories && post.categories.map((category: any) => (
+                  <span key={category.title} className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2 dark:bg-orange-900 dark:text-orange-200">
+                    {category.title}
+                  </span>
+                ))}
+              </div>
+              <h2 className="text-2xl font-bold mb-3 text-blue-900 dark:text-white">{post.title}</h2>
+              <div className="flex items-center text-gray-700 dark:text-gray-400 text-sm">
+                {post.author.image && (
+                  <Image
+                    src={urlFor(post.author.image).width(30).height(30).url()}
+                    alt={post.author.name}
+                    width={30}
+                    height={30}
+                    className="rounded-full mr-2"
+                  />
+                )}
+                <span>
+                  {post.author.name}が{new Date(post.publishedAt).toLocaleDateString()}に投稿
                 </span>
-              ))}
+              </div>
             </div>
-            <Link href={`/post/${post.slug.current}`} className="text-blue-500 hover:underline">
-              Read More
-            </Link>
-          </div>
+          </Link>
         ))}
       </div>
 
@@ -84,7 +93,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
         <div className="flex justify-center mt-8 space-x-4">
           {currentPage > 1 && (
             <Link href={`/?page=${currentPage - 1}`} className="px-4 py-2 border rounded-md hover:bg-gray-200">
-              Previous
+              前へ
             </Link>
           )}
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -92,7 +101,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
               key={page}
               href={`/?page=${page}`}
               className={`px-4 py-2 border rounded-md ${
-                page === currentPage ? 'bg-blue-500 text-white' : 'hover:bg-gray-200'
+                page === currentPage ? 'bg-orange-500 text-white' : 'hover:bg-gray-200'
               }`}
             >
               {page}
@@ -100,7 +109,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
           ))}
           {currentPage < totalPages && (
             <Link href={`/?page=${currentPage + 1}`} className="px-4 py-2 border rounded-md hover:bg-gray-200">
-              Next
+              次へ
             </Link>
           )}
         </div>
