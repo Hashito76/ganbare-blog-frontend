@@ -148,7 +148,7 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
         </div>
 
         <div className="prose lg:prose-xl">
-          {post.body && <PortableText value={post.body} components={components} />}
+          {remainingBody && remainingBody.length > 0 && <PortableText value={remainingBody} components={components} />}
         </div>
       </div>
 
