@@ -1,9 +1,9 @@
 import imageUrlBuilder from '@sanity/image-url';
 import { SanityClient } from 'next-sanity';
+import type { Image as SanityImage } from 'sanity';
 
-export function urlFor(source: any, client: SanityClient) {
-  const builder = imageUrlBuilder(client);
-  return builder.image(source).url();
+export function urlFor(source: SanityImage, client: SanityClient) {
+  return imageUrlBuilder(client).image(source);
 }
 
 // Slugify function for generating IDs

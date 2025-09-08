@@ -5,22 +5,41 @@ import Image from 'next/image';
 import Link from 'next/link';
 import TableOfContents from '@/components/TableOfContents';
 import { useState } from 'react';
-import { urlFor, slugify } from '@/lib/clientUtils'; // Import from clientUtils
-import { client, previewClient } from '@/lib/sanity.client'; // Import client and previewClient
+import { urlFor, slugify } from '@/lib/clientUtils';
+import { client, previewClient } from '@/lib/sanity.client';
+import type { Image as SanityImage, Slug, PortableTextBlock, Block, Span } from 'sanity';
+import type { PortableTextComponents } from '@portabletext/react';
+import React from 'react';
 
-interface PostClientPageProps {
-  post: any;
-  isDraftMode: boolean; // Add this line
+// Define the Post interface
+interface Post {
+  _id: string;
+  title: string;
+  slug: Slug;
+  publishedAt: string;
+  mainImage?: SanityImage;
+  author: {
+    name: string;
+    image?: SanityImage;
+  };
+  categories?: { title: string }[];
+  body: Block[];
+  tableOfContentsIntro?: PortableTextBlock[];
 }
 
-const extractText = (children: any): string => {
+interface PostClientPageProps {
+  post: Post;
+  isDraftMode: boolean;
+}
+
+const extractText = (children: React.ReactNode): string => {
   if (typeof children === 'string') {
     return children;
   }
   if (Array.isArray(children)) {
     return children.map(extractText).join('');
   }
-  if (children && typeof children === 'object' && children.props && children.props.children) {
+  if (children && typeof children === 'object' && 'props' in children && children.props.children) {
     return extractText(children.props.children);
   }
   return '';
@@ -29,28 +48,26 @@ const extractText = (children: any): string => {
 const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) => {
   const currentClient = isDraftMode ? previewClient : client;
 
-  // Extract headings for Table of Contents
   const headings = post.body
-    .filter((block: any) => ['h2', 'h3', 'h4'].includes(block.style))
-    .map((block: any) => ({
+    .filter((block): block is Block & { style: 'h2' | 'h3' | 'h4' } => 
+      typeof block.style === 'string' && ['h2', 'h3', 'h4'].includes(block.style)
+    )
+    .map((block) => ({
       level: parseInt(block.style.replace('h', ''), 10),
-      text: block.children[0]?.text || '',
-      id: slugify(block.children.map((child: any) => child.text).join('')),
+      text: block.children && (block.children[0] as Span).text || '',
+      id: slugify(block.children ? block.children.map((child) => (child as Span).text).join('') : ''),
     }));
 
-  // Extract lead text (first block)
   const leadText = post.body.length > 0 ? post.body[0] : undefined;
-  const remainingBody = post.body.slice(1); // All blocks from the second one onwards
+  const remainingBody = post.body.slice(1);
 
-  // State for TOC visibility
   const [showToc, setShowToc] = useState(true);
 
-  // PortableText components for custom rendering
-  const components = {
+  const components: Partial<PortableTextComponents> = {
     types: {
-      image: ({ value }: any) => (
+      image: ({ value }: { value: SanityImage & { alt?: string } }) => (
         <Image
-          src={urlFor(value, currentClient)}
+          src={urlFor(value, currentClient).url()}
           alt={value.alt || 'Image'}
           width={800}
           height={450}
@@ -59,25 +76,25 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
       ),
     },
     block: {
-      h2: ({ children }: any) => {
+      h2: ({ children }) => {
         const id = slugify(extractText(children));
         return <h2 id={id} className="text-3xl font-bold mb-3 mt-6">{children}</h2>;
       },
-      h3: ({ children }: any) => {
+      h3: ({ children }) => {
         const id = slugify(extractText(children));
         return <h3 id={id} className="text-2xl font-bold mb-2 mt-4">{children}</h3>;
       },
-      h4: ({ children }: any) => {
+      h4: ({ children }) => {
         const id = slugify(extractText(children));
         return <h4 id={id} className="text-xl font-bold mb-2 mt-3">{children}</h4>;
       },
-      normal: ({ children }: any) => <p className="mb-4 leading-loose">{children}</p>,
+      normal: ({ children }) => <p className="mb-4 leading-loose">{children}</p>,
     },
     marks: {
-      link: ({ children, value }: any) => {
-        const rel = !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
+      link: ({ children, value }: { children?: React.ReactNode, value?: { href: string } }) => {
+        const rel = value?.href && !value.href.startsWith('/') ? 'noreferrer noopener' : undefined;
         return (
-          <a href={value.href} rel={rel} className="text-orange-600 hover:underline">
+          <a href={value?.href} rel={rel} className="text-orange-600 hover:underline">
             {children}
           </a>
         );
@@ -103,7 +120,7 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
           <span>{post.author.name}が{new Date(post.publishedAt).toLocaleDateString()}に投稿</span>
         </div>
         <div className="mb-4">
-          {post.categories && post.categories.map((category: any) => (
+          {post.categories && post.categories.map((category) => (
             <span key={category.title} className="inline-block bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full mr-2">
               {category.title}
             </span>
@@ -112,7 +129,7 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
         {post.mainImage && (
           <div>
             <Image
-              src={urlFor(post.mainImage, currentClient)}
+              src={urlFor(post.mainImage, currentClient).url()}
               alt={post.title}
               width={800} // Provide a reasonable width
               height={450} // Provide a reasonable height
