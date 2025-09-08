@@ -53,23 +53,23 @@ export default function SearchInput() {
       <input
         type="text"
         placeholder="Search posts..."
-        className="p-2 rounded-md text-gray-800"
+        className="p-2 rounded-md text-gray-800 dark:bg-gray-700 dark:text-white"
         value={searchTerm}
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
       />
       {showResults && (
-        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10">
-          {loading && <div className="p-2 text-gray-600">Searching...</div>}
+        <div className="absolute top-full left-0 mt-2 w-full bg-white border border-gray-300 rounded-md shadow-lg z-10 dark:bg-gray-800 dark:border-gray-600">
+          {loading && <div className="p-2 text-gray-600 dark:text-gray-300">Searching...</div>}
           {!loading && searchResults.length === 0 && searchTerm.length > 2 && (
-            <div className="p-2 text-gray-600">No results found.</div>
+            <div className="p-2 text-gray-600 dark:text-gray-300">No results found.</div>
           )}
           {!loading && searchResults.length > 0 && (
             <ul>
               {searchResults.map((post) => (
-                <li key={post._id} className="border-b border-gray-200 last:border-b-0">
-                  <Link href={`/post/${post.slug.current}`} className="block p-2 hover:bg-gray-100 text-gray-800">
+                <li key={post._id} className="border-b border-gray-200 last:border-b-0 dark:border-gray-700">
+                  <Link href={`/post/${post.slug.current}`} className="block p-2 hover:bg-gray-100 text-gray-800 dark:text-white dark:hover:bg-gray-700">
                     {post.title}
                   </Link>
                 </li>

@@ -1,9 +1,8 @@
-import { client } from '@/lib/sanity.client';
 import imageUrlBuilder from '@sanity/image-url';
+import { SanityClient } from 'next-sanity';
 
-// Image builder for Sanity images
-const builder = imageUrlBuilder(client);
-export function urlFor(source: any) {
+export function urlFor(source: any, client: SanityClient) {
+  const builder = imageUrlBuilder(client);
   return builder.image(source).url();
 }
 

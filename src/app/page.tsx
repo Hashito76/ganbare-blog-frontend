@@ -2,10 +2,29 @@ import Link from 'next/link';
 import { client } from '@/lib/sanity.client';
 import imageUrlBuilder from '@sanity/image-url';
 import Image from 'next/image';
+import type { Image as SanityImage } from 'sanity';
+
+// Define interfaces for our data
+interface Post {
+  _id: string;
+  title: string;
+  slug: { current: string };
+  publishedAt: string;
+  mainImage?: SanityImage;
+  author: {
+    name: string;
+    image?: SanityImage;
+  };
+  categories?: Category[];
+}
+
+interface Category {
+  title: string;
+}
 
 // Image builder for Sanity images
 const builder = imageUrlBuilder(client);
-function urlFor(source: any) {
+function urlFor(source: SanityImage) {
   return builder.image(source);
 }
 
@@ -29,7 +48,7 @@ async function getPosts(page: number = 1, limit: number = POSTS_PER_PAGE) {
       title
     }
   }`;
-  const posts = await client.fetch(query);
+  const posts: Post[] = await client.fetch(query);
 
   const totalPostsQuery = `count(*[_type == "post"])`;
   const totalPosts = await client.fetch(totalPostsQuery);
@@ -46,7 +65,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
     <div>
       <h1 className="text-4xl font-bold mb-8">ブログ記事</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {posts.map((post: any) => (
+        {posts.map((post: Post) => (
           <Link
             key={post._id}
             href={`/post/${post.slug.current}`}
@@ -63,7 +82,7 @@ export default async function HomePage({ searchParams }: { searchParams: { page?
             )}
             <div className="p-6">
               <div className="mb-4">
-                {post.categories && post.categories.map((category: any) => (
+                {post.categories && post.categories.map((category: Category) => (
                   <span key={category.title} className="inline-block bg-orange-100 text-orange-800 text-xs font-semibold px-2.5 py-0.5 rounded-full mr-2 dark:bg-orange-900 dark:text-orange-200">
                     {category.title}
                   </span>

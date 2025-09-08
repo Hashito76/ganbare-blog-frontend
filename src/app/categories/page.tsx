@@ -1,5 +1,10 @@
-import Link from 'next/link';
 import { client } from '@/lib/sanity.client';
+
+interface Category {
+  _id: string;
+  title: string;
+  description?: string;
+}
 
 async function getCategories() {
   const query = `*[_type == "category"]{
@@ -18,7 +23,7 @@ export default async function CategoriesPage() {
     <div>
       <h1 className="text-4xl font-bold mb-8">Categories</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {categories.map((category: any) => (
+        {categories.map((category: Category) => (
           <div key={category._id} className="border p-4 rounded-lg shadow-md">
             <h2 className="text-2xl font-semibold mb-2">{category.title}</h2>
             {category.description && <p className="text-gray-600">{category.description}</p>}

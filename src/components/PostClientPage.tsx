@@ -2,22 +2,40 @@
 
 import { PortableText } from '@portabletext/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import TableOfContents from '@/components/TableOfContents';
 import { useState } from 'react';
 import { urlFor, slugify } from '@/lib/clientUtils'; // Import from clientUtils
+import { client, previewClient } from '@/lib/sanity.client'; // Import client and previewClient
 
 interface PostClientPageProps {
   post: any;
+  isDraftMode: boolean; // Add this line
 }
 
-const PostClientPage: React.FC<PostClientPageProps> = ({ post }) => {
+const extractText = (children: any): string => {
+  if (typeof children === 'string') {
+    return children;
+  }
+  if (Array.isArray(children)) {
+    return children.map(extractText).join('');
+  }
+  if (children && typeof children === 'object' && children.props && children.props.children) {
+    return extractText(children.props.children);
+  }
+  return '';
+};
+
+const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) => {
+  const currentClient = isDraftMode ? previewClient : client;
+
   // Extract headings for Table of Contents
   const headings = post.body
     .filter((block: any) => ['h2', 'h3', 'h4'].includes(block.style))
     .map((block: any) => ({
       level: parseInt(block.style.replace('h', ''), 10),
       text: block.children[0]?.text || '',
-      id: slugify(block.children[0]?.text || ''),
+      id: slugify(block.children.map((child: any) => child.text).join('')),
     }));
 
   // Extract lead text (first block)
@@ -32,7 +50,7 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post }) => {
     types: {
       image: ({ value }: any) => (
         <Image
-          src={urlFor(value).url()}
+          src={urlFor(value, currentClient)}
           alt={value.alt || 'Image'}
           width={800}
           height={450}
@@ -42,15 +60,15 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post }) => {
     },
     block: {
       h2: ({ children }: any) => {
-        const id = slugify(children[0]?.text || '');
+        const id = slugify(extractText(children));
         return <h2 id={id} className="text-3xl font-bold mb-3 mt-6">{children}</h2>;
       },
       h3: ({ children }: any) => {
-        const id = slugify(children[0]?.text || '');
+        const id = slugify(extractText(children));
         return <h3 id={id} className="text-2xl font-bold mb-2 mt-4">{children}</h3>;
       },
       h4: ({ children }: any) => {
-        const id = slugify(children[0]?.text || '');
+        const id = slugify(extractText(children));
         return <h4 id={id} className="text-xl font-bold mb-2 mt-3">{children}</h4>;
       },
       normal: ({ children }: any) => <p className="mb-4 leading-loose">{children}</p>,
@@ -68,14 +86,14 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post }) => {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:space-x-8">
+    <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
       {/* Main Content Area */}
-      <div className="lg:w-3/4">
+      <div className="lg:col-span-4">
         <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
         <div className="flex items-center text-gray-600 text-sm mb-2">
           {post.author.image && (
             <Image
-              src={urlFor(post.author.image).width(30).height(30).url()}
+              src={urlFor(post.author.image, currentClient).width(30).height(30).url()}
               alt={post.author.name}
               width={30}
               height={30}
@@ -92,38 +110,64 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post }) => {
           ))}
         </div>
         {post.mainImage && (
-          <Image
-            src={urlFor(post.mainImage)}
-            alt={post.title}
-            width={800} // Provide a reasonable width
-            height={450} // Provide a reasonable height
-            className="w-full h-64 object-cover rounded-lg mb-4"
-          />
+          <div>
+            <Image
+              src={urlFor(post.mainImage, currentClient)}
+              alt={post.title}
+              width={800} // Provide a reasonable width
+              height={450} // Provide a reasonable height
+              className="w-full h-64 object-cover rounded-lg mb-2"
+            />
+            <p className="text-sm text-gray-500 text-center mb-4">記事内に商品プロモーションを含む場合があります</p>
+          </div>
         )}
         {leadText && (
           <div className="prose lg:prose-xl mb-8">
             <PortableText value={[leadText]} components={components} />
           </div>
         )}
+
+        {/* Table of Contents in Main Content */}
+        <div className="mb-4 w-3/4 mx-auto">
+          {post.tableOfContentsIntro && (
+            <div className="prose lg:prose-xl mb-2">
+              <PortableText value={post.tableOfContentsIntro} components={components} />
+            </div>
+          )}
+          <button
+            onClick={() => setShowToc(!showToc)}
+            className="mb-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors w-full text-sm"
+          >
+            {showToc ? '目次を隠す' : '目次を表示'}
+          </button>
+          {showToc && <TableOfContents headings={headings} />}
+        </div>
+
         <div className="prose lg:prose-xl">
           <PortableText value={remainingBody} components={components} />
         </div>
       </div>
 
       {/* Sidebar Area */}
-      <div className="lg:w-1/4 mt-8 lg:mt-0 p-4 border rounded-lg shadow-md bg-white dark:bg-gray-800 sticky top-20">
-        <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">サイドバー</h2>
-        <div className="mb-4">
-          <button
-            onClick={() => setShowToc(!showToc)}
-            className="mb-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors w-full"
-          >
-            {showToc ? '目次を隠す' : '目次を表示'}
-          </button>
-          {showToc && <TableOfContents headings={headings} />}
+      <div className="lg:col-span-2 h-full p-4 border rounded-lg shadow-md bg-white dark:bg-gray-800">
+        <div className="sticky top-20">
+          {isDraftMode && (
+            <Link href={`/api/exit-preview?slug=${post.slug.current}`}>
+              <button className="mb-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors w-full text-sm">
+                プレビューモードを終了
+              </button>
+            </Link>
+          )}
+          <div className="mb-4">
+            <button
+              onClick={() => setShowToc(!showToc)}
+              className="mb-4 px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors w-full text-sm"
+            >
+              {showToc ? '目次を隠す' : '目次を表示'}
+            </button>
+            {showToc && <TableOfContents headings={headings} />}
+          </div>
         </div>
-        <p className="text-gray-700 dark:text-gray-300 text-sm">ここにサイドバーのコンテンツが入ります。</p>
-        <p className="text-gray-700 dark:text-gray-300 text-sm">関連情報や広告などを表示できます。</p>
       </div>
     </div>
   );
