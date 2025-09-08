@@ -7,25 +7,10 @@ import TableOfContents from '@/components/TableOfContents';
 import { useState } from 'react';
 import { urlFor, slugify } from '@/lib/clientUtils';
 import { client, previewClient } from '@/lib/sanity.client';
-import type { Image as SanityImage, Slug, PortableTextBlock, Block, Span } from 'sanity';
+import { Post } from '@/types';
+import type { Block, Span, Image as SanityImage } from 'sanity';
 import type { PortableTextComponents } from '@portabletext/react';
 import React from 'react';
-
-// Define the Post interface
-interface Post {
-  _id: string;
-  title: string;
-  slug: Slug;
-  publishedAt: string;
-  mainImage?: SanityImage;
-  author: {
-    name: string;
-    image?: SanityImage;
-  };
-  categories?: { title: string }[];
-  body: Block[];
-  tableOfContentsIntro?: PortableTextBlock[];
-}
 
 interface PostClientPageProps {
   post: Post;
@@ -49,17 +34,19 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
   const currentClient = isDraftMode ? previewClient : client;
 
   const headings = post.body
-    .filter((block): block is Block & { style: 'h2' | 'h3' | 'h4' } => 
-      typeof block.style === 'string' && ['h2', 'h3', 'h4'].includes(block.style)
-    )
-    .map((block) => ({
-      level: parseInt(block.style.replace('h', ''), 10),
-      text: block.children && (block.children[0] as Span).text || '',
-      id: slugify(block.children ? block.children.map((child) => (child as Span).text).join('') : ''),
-    }));
+    ? post.body
+        .filter((block): block is Block & { style: 'h2' | 'h3' | 'h4' } => 
+          typeof block.style === 'string' && ['h2', 'h3', 'h4'].includes(block.style)
+        )
+        .map((block) => ({
+          level: parseInt(block.style.replace('h', ''), 10),
+          text: block.children && (block.children[0] as Span).text || '',
+          id: slugify(block.children ? block.children.map((child) => (child as Span).text).join('') : ''),
+        }))
+    : [];
 
-  const leadText = post.body.length > 0 ? post.body[0] : undefined;
-  const remainingBody = post.body.slice(1);
+  const leadText = post.body && post.body.length > 0 ? post.body[0] : undefined;
+  const remainingBody = post.body ? post.body.slice(1) : [];
 
   const [showToc, setShowToc] = useState(true);
 
@@ -131,8 +118,8 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
             <Image
               src={urlFor(post.mainImage, currentClient).url()}
               alt={post.title}
-              width={800} // Provide a reasonable width
-              height={450} // Provide a reasonable height
+              width={800}
+              height={450}
               className="w-full h-64 object-cover rounded-lg mb-2"
             />
             <p className="text-sm text-gray-500 text-center mb-4">記事内に商品プロモーションを含む場合があります</p>
@@ -161,7 +148,7 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
         </div>
 
         <div className="prose lg:prose-xl">
-          <PortableText value={remainingBody} components={components} />
+          {post.body && <PortableText value={post.body} components={components} />}
         </div>
       </div>
 
