@@ -1,4 +1,4 @@
-import type { Image as SanityImage, Slug, PortableTextBlock, Block } from 'sanity';
+import type { Image as SanityImage, Slug, PortableTextBlock } from 'sanity';
 
 export interface Post {
   _id: string;
@@ -11,6 +11,6 @@ export interface Post {
     image?: SanityImage;
   };
   categories?: { title: string }[];
-  body?: Block[]; // Made optional to match potential undefined value
+  body?: PortableTextBlock[];
   tableOfContentsIntro?: PortableTextBlock[];
 }

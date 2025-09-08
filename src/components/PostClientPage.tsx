@@ -8,13 +8,18 @@ import { useState } from 'react';
 import { urlFor, slugify } from '@/lib/clientUtils';
 import { client, previewClient } from '@/lib/sanity.client';
 import { Post } from '@/types';
-import type { Block, Span, Image as SanityImage } from 'sanity';
+import type { PortableTextBlock, Image as SanityImage } from 'sanity';
 import type { PortableTextComponents } from '@portabletext/react';
 import React from 'react';
 
 interface PostClientPageProps {
   post: Post;
   isDraftMode: boolean;
+}
+
+interface Span {
+  _type: 'span';
+  text: string;
 }
 
 const extractText = (children: React.ReactNode): string => {
@@ -35,14 +40,19 @@ const PostClientPage: React.FC<PostClientPageProps> = ({ post, isDraftMode }) =>
 
   const headings = post.body
     ? post.body
-        .filter((block): block is Block & { style: 'h2' | 'h3' | 'h4' } => 
+        .filter((block): block is PortableTextBlock & { style: 'h2' | 'h3' | 'h4' } => 
           typeof block.style === 'string' && ['h2', 'h3', 'h4'].includes(block.style)
         )
-        .map((block) => ({
-          level: parseInt(block.style.replace('h', ''), 10),
-          text: block.children && (block.children[0] as Span).text || '',
-          id: slugify(block.children ? block.children.map((child) => (child as Span).text).join('') : ''),
-        }))
+        .map((block) => {
+          const blockChildren = block.children as Span[];
+          const text = blockChildren[0]?.text || '';
+          const id = slugify(blockChildren.map(child => child.text).join(''));
+          return {
+            level: parseInt(block.style.replace('h', ''), 10),
+            text,
+            id,
+          };
+        })
     : [];
 
   const leadText = post.body && post.body.length > 0 ? post.body[0] : undefined;
