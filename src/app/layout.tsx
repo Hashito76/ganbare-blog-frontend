@@ -14,7 +14,7 @@ const luckiestGuy = Luckiest_Guy({
 });
 
 export const metadata: Metadata = {
-  title: "『ちょこっとアウトドア』",
+  title: "Logarithmic Life",
   description: "Next.jsとSanityで構築されたブログ",
 };
 
@@ -32,7 +32,7 @@ export default function RootLayout({
           <header className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex justify-between items-center">
               <Link href="/" className={`text-2xl font-bold ${luckiestGuy.className} text-pop-shadow text-white`}>
-                『ちょこっとアウトドア』
+                Logarithmic Life
               </Link>
               <nav className="flex items-center space-x-4">
                 <ul className="flex space-x-4">
@@ -57,7 +57,7 @@ export default function RootLayout({
           </main>
           <footer className="bg-gray-800 text-white p-4 text-center">
             <div className="container mx-auto">
-              &copy; {new Date().getFullYear()} 『ちょこっとアウトドア』. 無断転載を禁じます。
+              &copy; {new Date().getFullYear()} Logarithmic Life. 無断転載を禁じます。
             </div>
           </footer>
         </ThemeProvider>
